@@ -132,6 +132,10 @@ const GenerateProgramPage = () => {
         const fullName = user?.firstName
           ? `${user.firstName} ${user.lastName || ""}`.trim()
           : "There";
+        console.log(
+          "Trying to start call with workflow:",
+          process.env.NEXT_PUBLIC_VAPI_WORKFLOW_ID
+        );
 
         await vapi.start(process.env.NEXT_PUBLIC_VAPI_WORKFLOW_ID!, {
           variableValues: {
@@ -209,7 +213,9 @@ const GenerateProgramPage = () => {
                 </div>
               </div>
 
-              <h2 className="text-xl font-bold text-foreground">CodeFlex AI</h2>
+              <h2 className="text-xl font-bold text-foreground">
+                Athletica AI
+              </h2>
               <p className="text-sm text-muted-foreground mt-1">
                 Fitness & Diet Coach
               </p>
@@ -283,7 +289,7 @@ const GenerateProgramPage = () => {
               {messages.map((msg, index) => (
                 <div key={index} className="message-item animate-fadeIn">
                   <div className="font-semibold text-xs text-muted-foreground mb-1">
-                    {msg.role === "assistant" ? "CodeFlex AI" : "You"}:
+                    {msg.role === "assistant" ? "Athletica AI" : "You"}:
                   </div>
                   <p className="text-foreground">{msg.content}</p>
                 </div>
