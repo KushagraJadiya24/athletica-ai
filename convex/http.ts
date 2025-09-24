@@ -134,8 +134,7 @@ http.route({
     try {
       const payload = await request.json();
 
-      const {
-        user_id,
+      let {
         age,
         height,
         weight,
@@ -145,6 +144,31 @@ http.route({
         fitness_level,
         dietary_restrictions,
       } = payload;
+      // Get user ID from Clerk auth context (recommended)
+      const auth = await ctx.auth.getUserIdentity();
+      if (!auth) {
+        return new Response(
+          JSON.stringify({ success: false, error: "Not authenticated" }),
+          { status: 401, headers: { "Content-Type": "application/json" } }
+        );
+      }
+
+      // Convert Clerk user ID to DB user ID
+      const dbUser = await ctx.runQuery(api.users.getUserByClerkId, {
+        clerkId: auth.subject, // Clerk user ID
+      });
+
+      if (!dbUser) {
+        return new Response(
+          JSON.stringify({
+            success: false,
+            error: "User not found. Please register first.",
+          }),
+          { status: 404, headers: { "Content-Type": "application/json" } }
+        );
+      }
+
+      const user_id = dbUser._id;
 
       console.log("Payload is here:", payload);
 

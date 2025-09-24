@@ -1,5 +1,5 @@
-import { mutation } from "./_generated/server";
-import { v } from "convex/values";
+import { query, mutation } from "./_generated/server";
+import { v, VString } from "convex/values";
 
 export const syncUser = mutation({
   args: {
@@ -36,5 +36,16 @@ export const updateUser = mutation({
     if (!existingUser) return;
 
     return await ctx.db.patch(existingUser._id, args);
+  },
+});
+
+// Make sure this function is exported
+export const getUserByClerkId = query({
+  args: { clerkId: v.string() },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkId", args.clerkId))
+      .unique();
   },
 });
