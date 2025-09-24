@@ -52,7 +52,6 @@ http.route({
         evt.data;
 
       const email = email_addresses[0].email_address;
-
       const name = `${first_name || ""} ${last_name || ""}`.trim();
 
       try {
@@ -94,6 +93,7 @@ http.route({
 
 // validate and fix workout plan to ensure it has proper numeric types
 function validateWorkoutPlan(plan: any) {
+  console.log("Validating workout plan:", JSON.stringify(plan, null, 2));
   const validatedPlan = {
     schedule: plan.schedule,
     exercises: plan.exercises.map((exercise: any) => ({
@@ -111,12 +111,16 @@ function validateWorkoutPlan(plan: any) {
       })),
     })),
   };
+  console.log(
+    "Validated workout plan:",
+    JSON.stringify(validatedPlan, null, 2)
+  );
   return validatedPlan;
 }
 
 // validate diet plan to ensure it strictly follows schema
 function validateDietPlan(plan: any) {
-  // only keep the fields we want
+  console.log("Validating diet plan:", JSON.stringify(plan, null, 2));
   const validatedPlan = {
     dailyCalories: plan.dailyCalories,
     meals: plan.meals.map((meal: any) => ({
@@ -124,6 +128,7 @@ function validateDietPlan(plan: any) {
       foods: meal.foods,
     })),
   };
+  console.log("Validated diet plan:", JSON.stringify(validatedPlan, null, 2));
   return validatedPlan;
 }
 
@@ -131,8 +136,11 @@ http.route({
   path: "/vapi/generate-program",
   method: "POST",
   handler: httpAction(async (ctx, request) => {
+    console.log("=== STARTING GENERATE PROGRAM REQUEST ===");
+
     try {
       const payload = await request.json();
+      console.log("Received payload:", JSON.stringify(payload, null, 2));
 
       let {
         age,
@@ -144,21 +152,40 @@ http.route({
         fitness_level,
         dietary_restrictions,
       } = payload;
-      // Get user ID from Clerk auth context (recommended)
-      const auth = await ctx.auth.getUserIdentity();
-      if (!auth) {
+
+      console.log("Looking for current generation user...");
+
+      // NEW: Get the user ID from the generation session
+      const clerkUserId = await ctx.runQuery(
+        api.generateSessions.getCurrentGenerationUser
+      );
+      console.log("✅ Raw clerkUserId from session:", clerkUserId);
+      if (!clerkUserId) {
+        console.error(
+          "No generation session found. User needs to click generate button first."
+        );
         return new Response(
-          JSON.stringify({ success: false, error: "Not authenticated" }),
-          { status: 401, headers: { "Content-Type": "application/json" } }
+          JSON.stringify({
+            success: false,
+            error:
+              "No active generation session. Please click the generate button to start.",
+          }),
+          {
+            status: 400,
+            headers: { "Content-Type": "application/json" },
+          }
         );
       }
 
+      console.log("Found Clerk user ID for generation:", clerkUserId);
+
       // Convert Clerk user ID to DB user ID
       const dbUser = await ctx.runQuery(api.users.getUserByClerkId, {
-        clerkId: auth.subject, // Clerk user ID
+        clerkId: clerkUserId,
       });
 
       if (!dbUser) {
+        console.error("User not found in database with clerkId:", clerkUserId);
         return new Response(
           JSON.stringify({
             success: false,
@@ -168,14 +195,14 @@ http.route({
         );
       }
 
-      const user_id = dbUser._id;
+      const user_id = clerkUserId;
+      console.log("Found database user ID:", user_id);
 
-      console.log("Payload is here:", payload);
-
+      console.log("Starting AI model initialization...");
       const model = genAI.getGenerativeModel({
         model: "gemini-2.0-flash-001",
         generationConfig: {
-          temperature: 0.4, // lower temperature for more predictable outputs
+          temperature: 0.4,
           topP: 0.9,
           responseMimeType: "application/json",
         },
@@ -224,11 +251,13 @@ http.route({
       
       DO NOT add any fields that are not in this example. Your response must be a valid JSON object with no additional text.`;
 
+      console.log("Generating workout plan...");
       const workoutResult = await model.generateContent(workoutPrompt);
       const workoutPlanText = workoutResult.response.text();
+      console.log("Raw workout plan response:", workoutPlanText);
 
-      // VALIDATE THE INPUT COMING FROM AI
       let workoutPlan = JSON.parse(workoutPlanText);
+      console.log("Parsed workout plan:", JSON.stringify(workoutPlan, null, 2));
       workoutPlan = validateWorkoutPlan(workoutPlan);
 
       const dietPrompt = `You are an experienced nutrition coach creating a personalized diet plan based on:
@@ -268,14 +297,16 @@ http.route({
         
         DO NOT add any fields that are not in this example. Your response must be a valid JSON object with no additional text.`;
 
+      console.log("Generating diet plan...");
       const dietResult = await model.generateContent(dietPrompt);
       const dietPlanText = dietResult.response.text();
+      console.log("Raw diet plan response:", dietPlanText);
 
-      // VALIDATE THE INPUT COMING FROM AI
       let dietPlan = JSON.parse(dietPlanText);
+      console.log("Parsed diet plan:", JSON.stringify(dietPlan, null, 2));
       dietPlan = validateDietPlan(dietPlan);
 
-      // save to our DB: CONVEX
+      console.log("Saving plan to database with user ID:", user_id);
       const planId = await ctx.runMutation(api.plans.createPlan, {
         userId: user_id,
         dietPlan,
@@ -283,6 +314,9 @@ http.route({
         workoutPlan,
         name: `${fitness_goal} Plan - ${new Date().toLocaleDateString()}`,
       });
+
+      console.log("Plan saved successfully with ID:", planId);
+      console.log("=== GENERATE PROGRAM COMPLETED SUCCESSFULLY ===");
 
       return new Response(
         JSON.stringify({
@@ -299,7 +333,8 @@ http.route({
         }
       );
     } catch (error) {
-      console.error("Error generating fitness plan:", error);
+      console.error("=== ERROR IN GENERATE PROGRAM ===");
+      console.error("Error details:", error);
       return new Response(
         JSON.stringify({
           success: false,

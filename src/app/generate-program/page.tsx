@@ -7,6 +7,9 @@ import { useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
+import { useMutation } from "convex/react"; // ADD THIS IMPORT
+import { api } from "../../../convex/_generated/api"; // ADD THIS IMPORT
+
 const GenerateProgramPage = () => {
   const [callActive, setCallActive] = useState(false);
   const [connecting, setConnecting] = useState(false);
@@ -16,7 +19,9 @@ const GenerateProgramPage = () => {
 
   const { user } = useUser();
   const router = useRouter();
-
+  const storeUserForGeneration = useMutation(
+    api.generateSessions.setCurrentGenerationUser
+  );
   const messageContainerRef = useRef<HTMLDivElement>(null);
 
   // SOLUTION to get rid of "Meeting has ended" error
@@ -122,29 +127,39 @@ const GenerateProgramPage = () => {
   }, []);
 
   const toggleCall = async () => {
-    if (callActive) vapi.stop();
-    else {
+    if (callActive) {
+      vapi.stop();
+    } else {
       try {
         setConnecting(true);
         setMessages([]);
         setCallEnded(false);
 
+        // SIMPLE: Just store the Clerk user ID directly
+        if (!user) {
+          console.error("No user found");
+          setConnecting(false);
+          return;
+        }
+
+        console.log("Storing user ID for generation:", user.id);
+
+        // Store the Clerk ID directly as string
+        await storeUserForGeneration({ userId: user.id });
+        console.log("User ID stored successfully");
+
         const fullName = user?.firstName
           ? `${user.firstName} ${user.lastName || ""}`.trim()
           : "There";
-        console.log(
-          "Trying to start call with workflow:",
-          process.env.NEXT_PUBLIC_VAPI_WORKFLOW_ID
-        );
 
+        console.log("Starting VAPI call...");
         await vapi.start(process.env.NEXT_PUBLIC_VAPI_WORKFLOW_ID!, {
           variableValues: {
             full_name: fullName,
-            user_id: user?.id,
           },
         });
       } catch (error) {
-        console.log("Failed to start call", error);
+        console.error("Failed to start call", error);
         setConnecting(false);
       }
     }

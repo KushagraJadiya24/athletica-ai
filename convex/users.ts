@@ -42,10 +42,10 @@ export const updateUser = mutation({
 // Make sure this function is exported
 export const getUserByClerkId = query({
   args: { clerkId: v.string() },
-  handler: async (ctx, args) => {
+  handler: async (ctx, { clerkId }) => {
     return await ctx.db
       .query("users")
-      .withIndex("by_clerk_id", (q) => q.eq("clerkId", args.clerkId))
-      .unique();
+      .withIndex("by_clerk_id", (q) => q.eq("clerkId", clerkId))
+      .first();
   },
 });

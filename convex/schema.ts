@@ -10,7 +10,7 @@ export default defineSchema({
   }).index("by_clerk_id", ["clerkId"]),
 
   plans: defineTable({
-    userId: v.string(),
+    userId: v.string(), // Keep as string
     name: v.string(),
     workoutPlan: v.object({
       schedule: v.array(v.string()),
@@ -43,4 +43,11 @@ export default defineSchema({
   })
     .index("by_user_id", ["userId"])
     .index("by_active", ["isActive"]),
+
+  generateSessions: defineTable({
+    userId: v.string(), // Simple string instead of v.id("users")
+    createdAt: v.number(),
+  })
+    .index("by_user_id", ["userId"])
+    .index("by_created_at", ["createdAt"]),
 });
