@@ -1,36 +1,125 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🏋️‍♂️ Athletica AI
 
-## Getting Started
+Athletica AI is a personalized fitness and nutrition platform powered by **AI, real-time program generation, and voice assistance**.  
+It leverages **Next.js, Clerk, Convex, Prisma, TailwindCSS, Shadcn UI, and Gemini AI** to provide users with **custom workout and diet plans**.
 
-First, run the development server:
+---
+
+## ✨ Features
+
+- 🚀 **Tech Stack**: Next.js, React, TailwindCSS, Shadcn UI
+- 🎙️ **Voice AI Assistant** (Vapi)
+- 🧠 **LLM Integration** (Google Gemini AI)
+- 🏋️ **Personalized Workout Plans** generated dynamically
+- 🥗 **Custom Diet Programs** tailored to user preferences & restrictions
+- 🔒 **Authentication & Authorization** (Clerk)
+- 💾 **Database** powered by Convex
+- 🎬 **Real-time Program Generation**
+- 💻 **Modular Layouts** with Next.js App Router
+- 🎭 **Client & Server Components** for optimal performance
+
+---
+
+## 📂 Project Structure
+
+```
+src/
+├── app/
+│   ├── (auth)/        # Authentication pages (Clerk)
+│   ├── generate-program/ # Program generation page
+│   ├── profile/       # User profile page
+│   ├── layout.tsx     # Global layout
+│   ├── page.tsx       # Landing page
+│
+├── components/        # UI components (Shadcn + custom)
+├── constants/         # Constants used across the app
+├── lib/               # Utility functions
+├── providers/         # Context providers
+├── middleware.ts      # Middleware (auth, etc.)
+│
+├── globals.css        # Global styles (Tailwind)
+└── favicon.ico
+```
+
+---
+
+## ⚡ Getting Started
+
+### 1️⃣ Clone the repository
+
+```bash
+git clone https://github.com/KushagraJadiya24/athletica-ai.git
+cd athletica-ai
+```
+
+### 2️⃣ Install dependencies
+
+```bash
+npm install
+```
+
+### 3️⃣ Environment variables
+
+Create a `.env.local` file in the root and add:
+
+```bash
+# Clerk
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=your_clerk_publishable_key
+CLERK_SECRET_KEY=your_clerk_secret_key
+CLERK_WEBHOOK_SECRET=your_clerk_webhook_secret
+
+# Convex
+CONVEX_DEPLOYMENT=your_convex_url
+CONVEX_AUTH_SECRET=your_convex_secret
+
+# Gemini
+GEMINI_API_KEY=your_gemini_api_key
+
+# VAPI
+VAPI_KEY=your_vapi_key
+```
+
+### 4️⃣ Run the development server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 5️⃣ Build for production
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm run build
+npm start
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+---
 
-## Learn More
+## 🛠️ Tech Stack
 
-To learn more about Next.js, take a look at the following resources:
+- **Frontend**: Next.js, React, TailwindCSS, Shadcn UI
+- **Backend**: Convex, Prisma
+- **Authentication**: Clerk
+- **AI/LLM**: Gemini AI
+- **Voice AI**: Vapi
+- **Styling**: TailwindCSS, Shadcn components
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 📌 Roadmap
 
-## Deploy on Vercel
+- [ ] Add AI-driven progress tracking
+- [ ] Enhance real-time coaching with voice interactions
+- [ ] Mobile app (React Native / Expo)
+- [ ] Add social/community features
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 🤝 Contributing
+
+Contributions are welcome! Please fork the repo and submit a PR.
+
+---
+
+## 📜 License
+
+MIT License © 2025 Athletica AI
